@@ -1,6 +1,7 @@
 package com.mdsantos.learningspring.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mdsantos.learningspring.entities.enums.OrderStatus;
 import jakarta.persistence.*;
 
@@ -30,6 +31,9 @@ public class Order implements Serializable {
 
     @OneToMany(mappedBy = "id.order")
     private Set<OrderItem> items = new HashSet<>();
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Payment payment;
 
     public Order(){}
 
@@ -68,6 +72,14 @@ public class Order implements Serializable {
         return OrderStatus.valueOf(orderStatus);
     }
 
+    public Double getTotal() {
+        double sum = 0.0;
+        for(OrderItem x : items) {
+            sum += x.getSubTotal();
+        }
+        return sum;
+    }
+
     public void setOrderStatus(OrderStatus orderStatus) {
         if (orderStatus != null) {
             this.orderStatus = orderStatus.getCode();
@@ -76,6 +88,14 @@ public class Order implements Serializable {
 
     public Set<OrderItem> getItems() {
         return items;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
 
     @Override

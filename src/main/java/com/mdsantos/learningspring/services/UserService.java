@@ -3,7 +3,12 @@ package com.mdsantos.learningspring.services;
 import com.mdsantos.learningspring.entities.User;
 import com.mdsantos.learningspring.repositories.OrderRepository;
 import com.mdsantos.learningspring.repositories.UserRepository;
+import com.mdsantos.learningspring.services.exceptions.DatabaseException;
+import com.mdsantos.learningspring.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,14 +30,18 @@ public class UserService {
 
     public User findById(Long id) {
         Optional<User> user = userRepository.findById(id);
-        return user.get();
+        return user.orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     public User update(Long id, User obj) {
-        User user = userRepository.getReferenceById(id);
-        updateData(user, obj);
+        try {
+            User user = userRepository.getReferenceById(id);
+            updateData(user, obj);
 
-        return userRepository.save(user);
+            return userRepository.save(user);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException(e.getMessage());
+        }
     }
 
     private void updateData(User user, User obj) {
@@ -46,6 +55,12 @@ public class UserService {
     }
 
     public void delete(Long id) {
-        userRepository.deleteById(id);
+        try {
+            userRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ResourceNotFoundException(e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException(e.getMessage());
+        }
     }
 }

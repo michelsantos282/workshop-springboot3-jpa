@@ -28,6 +28,19 @@ public class UserService {
         return user.get();
     }
 
+    public User update(Long id, User obj) {
+        User user = userRepository.getReferenceById(id);
+        updateData(user, obj);
+
+        return userRepository.save(user);
+    }
+
+    private void updateData(User user, User obj) {
+        user.setName(obj.getName());
+        user.setEmail(obj.getEmail());
+        user.setPhone(obj.getPhone());
+    }
+
     public User save(User obj) {
         return userRepository.save(obj);
     }
